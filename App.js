@@ -46,7 +46,7 @@ class App extends React.Component {
     }
 
     componentDidMount() {
-        this.handleUpdateLocation('Córdoba');
+        this.handleUpdateLocation('Los Angeles');
     }
     handleUpdateLocation = city => {
 
@@ -58,39 +58,76 @@ class App extends React.Component {
                 const { location, weather, temperature } = await fetchWeather(
                     locationId,
                 );
-
+                this.setState({
+                    loading: false,
+                    error: false,
+                    location,
+                    temperature,
+                    weather 
+                });
+            } catch (e) {
+                this.setState({
+                    loading: false,
+                    error: true
+                });
             }
         });
     };
 
     render(){
-        const { location } = this.state;
+        const {
+            loading,
+            error,
+            location,
+            weather,
+            temperature,
+         } = this.state;
         return (
             <Fragment>
-                <StatusBar backgroundColor="#212121" />
+                <StatusBar barStyle='light-content' />
                 <KeyboardAvoidingView
                     style={styles.container}
                     behavior= {(Platform.OS === 'ios') ? "padding" : null}
                 >   
                     <ImageBackground
-                        source={getImageForWeather('Clear')}
+                        source={getImageForWeather(weather)}
                         style={styles.imageContainer}
                         imageStyle={styles.image}
                     >
                         <View style={styles.detailsContainer}>
-                            <Text style={[styles.largeText, styles.textStyle]}>
-                                {location}
-                            </Text>
-                            <Text style={[styles.smallText, styles.textStyle]}>
-                                Despejado
-                            </Text>
-                            <Text style={[styles.largeText, styles.textStyle]}>
-                                8°
-                            </Text>
-                            <SearchInput
-                                placeholder='Buscar tu ciudad'
-                                onSubmit= {this.handleUpdateLocation}
+                            <ActivityIndicator
+                                animating={loading}
+                                color="white"
+                                size="large"
                             />
+                            {!loading && (
+                                <View>
+                                    {error && (
+                                        <Text style={[styles.largeText, styles.textStyle]}>
+                                            No pudimos cargar el clima, intenta con otra ciudad.
+                                        </Text>
+                                    )}
+
+                                    {!error && (
+                                        <View>
+                                            <Text style={[styles.largeText, styles.textStyle]}>
+                                                {location}
+                                            </Text> 
+                                            <Text style={[styles.smallText, styles.textStyle]}>
+                                                {weather}
+                                            </Text>
+                                            <Text style={[styles.largeText, styles.textStyle]}>
+                                                {`${Math.round(temperature)}°`}
+                                            </Text>
+                                        </View>
+                                    )}
+
+                                    <SearchInput
+                                        placeholder='Buscar tu ciudad'
+                                        onSubmit= {this.handleUpdateLocation}
+                                    />
+                                </View>
+                            )}
                         </View>
                     </ImageBackground>
                 </KeyboardAvoidingView>
